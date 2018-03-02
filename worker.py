@@ -37,21 +37,23 @@ class NotifierTask(Task):
         # if args[1] == 'master':
 
         # post status in PR
-        if len(args) > 2 and args[2]:
-            pr = repo.get_pull(args[2])
-            pr.create_issue_comment('''```
-{0}
+        if 'pr' in kwargs:
+            pr = repo.get_pull(kwargs['pr'])
+            pr.create_issue_comment('''{}
+
 ```
-'''.format(retval))
+{}
+```
+'''.format(status, retval))
 
         # complete commit status
         if status == 'SUCCESS':
-            if len(args) > 3 and args[3]:
-                commit = repo.get_commit(args[3])
+            if 'commit' in kwargs:
+                commit = repo.get_commit(kwargs['commit'])
                 commit.create_status("success", "", "terraform succeeded")
         else:
-            if len(args) > 3 and args[3]:
-                commit = repo.get_commit(args[3])
+            if 'commit' in kwargs:
+                commit = repo.get_commit(kwargs['commit'])
                 commit.create_status("failure", "", "terraform failed")
 
 
