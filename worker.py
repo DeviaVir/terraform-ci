@@ -103,7 +103,7 @@ def invoke(args, branch, provider='aws', pr=False, commit=False):
 
     cmd = subprocess.Popen(
         args=('terraform',) + args,
-        cwd='/terraform/' + provider,
+        cwd=CWD + '/' + provider,
         env=my_env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT)
