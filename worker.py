@@ -52,6 +52,17 @@ def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False)
     args = (args,) + tuple(shlex.split(TF_ARGS))
     supported_providers = ['aws', 'gcp']
 
+    print(('git', 'pull', 'origin', 'master'))
+    print(('git', 'reset', '--hard', 'origin/master'))
+    print(('git', 'pull', upstream, branch))
+
+    subprocess.Popen(
+        args=('git', 'pull', 'origin', 'master'),
+        cwd=CWD,
+        env=my_env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT)
+
     subprocess.Popen(
         args=('git', 'reset', '--hard', 'origin/master'),
         cwd=CWD,
