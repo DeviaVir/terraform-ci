@@ -19,7 +19,7 @@ def main():
 @webhook.hook()
 def on_push(data):
     print("Got push data: {0}".format(data))
-    branch = data['ref'].replace('refs/heads/')
+    branch = data['ref'].replace('refs/heads/', '')
     commit = data['head_commit']['id']
 
     if branch == 'master':
