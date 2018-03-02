@@ -1,0 +1,6 @@
+LICENSE
+.git
+__pycache__
+docker-compose.yml
+README.md
+secrets.env.example
