@@ -10,7 +10,7 @@ ADD . /app
 WORKDIR /app
 RUN pip install -r requirements.txt \
   && mkdir -p /terraform \
-  && apk add --no-cache git
+  && apk add --no-cache git openssh
 
 VOLUME /terraform
 
