@@ -47,27 +47,20 @@ class NotifierTask(Task):
 
 
 @app.task(base=NotifierTask)
-def invoke(args, branch, provider='aws', pr=False, commit=False):
+def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False):
     my_env = os.environ.copy()
     args = (args,) + tuple(shlex.split(TF_ARGS))
     supported_providers = ['aws', 'gcp']
 
     subprocess.Popen(
-        args=('git', 'pull', 'origin', branch),
+        args=('git', 'reset', '--hard', 'origin/master'),
         cwd=CWD,
         env=my_env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT)
 
     subprocess.Popen(
-        args=('git', 'checkout', 'origin/' + branch),
-        cwd=CWD,
-        env=my_env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT)
-
-    subprocess.Popen(
-        args=('git', 'reset', '--hard', 'origin/' + branch),
+        args=('git', 'pull', upstream, branch),
         cwd=CWD,
         env=my_env,
         stdout=subprocess.PIPE,
