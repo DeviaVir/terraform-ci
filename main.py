@@ -19,13 +19,13 @@ def main():
 @webhook.hook()
 def on_push(data):
     print("Got push data: {0}".format(data))
-    branch = data.ref.replace('refs/heads/')
-    commit = data.head_commit.id
+    branch = data['ref'].replace('refs/heads/')
+    commit = data['head_commit']['id']
 
     if branch == 'master':
         provider = 'aws'
         tf_commit = False
-        modifieds = data.head_commit.modified
+        modifieds = data['head_commit']['modified']
         for change in modifieds:
             if 'terraform/' in change:
                 tf_commit = True
@@ -47,9 +47,9 @@ def on_push(data):
 def on_pull_request(data):
     print("Got pull request data: {0}".format(data))
 
-    if data.action == 'opened' or data.action == 'synchronize':
-        branch = data.pull_request.head.ref
-        invoke.delay('plan', branch, pr=data.pull_request.number)
+    if data['action'] == 'opened' or data['action'] == 'synchronize':
+        branch = data['pull_request']['head']['ref']
+        invoke.delay('plan', branch, pr=data['pull_request']['number'])
 
     return 'OK'
 
