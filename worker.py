@@ -8,6 +8,8 @@ from github import Github
 broker = 'amqp://rabbit:5672'
 app = Celery(__name__, broker=broker)
 g = Github(os.environ.get('GH_ACCESS_TOKEN', ''))
+org = g.get_organization(os.environ.get('GH_ORGANIZATION', 'deviavir'))
+repo = org.get_repo(os.environ.get('GH_REPO', 'terraform-ci'))
 
 INIT_REQUIRED = b'Backend reinitialization required.'
 MODULES_NOT_LOADED = b'Error loading modules:'
@@ -19,28 +21,79 @@ class NotifierTask(Task):
     abstract = True
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
-        print('would have sent data on return!!!')
-        print(status)
-        print('-----------------')
-        print(retval)
-        print('-----------------')
-        print(task_id)
-        print('-----------------')
-        print(args)
-        print('-----------------')
-        print(kwargs)
-        print('-----------------')
-        print(einfo)
+        # TODO: post results to another channel? slack?
+        # if args[1] == 'master':
+
+        # post status in PR
+        if args[2]:
+            pr = repo.get_pull(args[2])
+            pr.create_issue_comment('''```
+{0}
+```
+'''.format(retval))
+
+        # complete commit status
+        if status == 'SUCCESS':
+            if args[3]:
+                commit = repo.get_commit(args[3])
+                commit.create_status("success", "", "terraform succeeded")
+        else:
+            if args[3]:
+                commit = repo.get_commit(args[3])
+                commit.create_status("failure", "", "terraform failed")
 
 
 @app.task(base=NotifierTask)
-def invoke(args):
-    args = tuple(args.split() + shlex.split(TF_ARGS))
-
+def invoke(args, branch, provider='aws', pr=False, commit=False):
     my_env = os.environ.copy()
+    args = tuple(args.split() + shlex.split(TF_ARGS))
+    supported_providers = ['aws', 'gcp']
+
+    subprocess.Popen(
+        args=('git', 'pull'),
+        cwd='/terraform',
+        env=my_env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT)
+
+    subprocess.Popen(
+        args=('git', 'reset', '--hard', 'origin/' + branch),
+        cwd='/terraform',
+        env=my_env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT)
+
+    if branch != 'master':
+        changed_files = subprocess.Popen(
+            args=('git', '--no-pager', 'diff', '--name-only', 'HEAD', 'master'),
+            cwd='/terraform',
+            env=my_env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT)
+        output_lines = []
+        while changed_files.poll() is None:
+            output_line = changed_files.stdout.readline()
+            output_lines.append(output_line)
+
+        tf_updates = False
+        for line in output_lines:
+            if 'terraform/' in line:
+                tf_updates = True
+                if 'terraform/aws/' in line:
+                    provider = 'aws'
+                if 'terraform/gcp/' in line:
+                    provider = 'gcp'
+        if not tf_updates:
+            return output_lines
+
+    # TODO: figure out what to do when we have changes to multiple providers
+
+    if provider not in supported_providers:
+        return output_lines
+
     cmd = subprocess.Popen(
         args=('terraform',) + args,
-        cwd='/terraform',
+        cwd='/terraform/' + provider,
         env=my_env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT)
@@ -61,7 +114,7 @@ def invoke(args):
     if init_error:
         del_cmd = subprocess.Popen(
             args=('rm', '-rf', '.terraform'),
-            cwd='/terraform',
+            cwd='/terraform/' + provider,
             env=my_env,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT)
@@ -70,7 +123,7 @@ def invoke(args):
 
         init_cmd = subprocess.Popen(
             args=('terraform', 'init', '-input=false'),
-            cwd='/terraform',
+            cwd='/terraform/' + provider,
             env=my_env,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT)
@@ -78,6 +131,6 @@ def invoke(args):
         while init_cmd.poll() is None:
             output_line = init_cmd.stdout.readline()
 
-        return invoke(args)
+        return invoke(args, branch, provider=provider, pr=pr, commit=commit)
 
     return output_lines

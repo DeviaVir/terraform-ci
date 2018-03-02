@@ -2,26 +2,55 @@ import os
 from flask import Flask
 from github_webhook import Webhook
 from worker import invoke
+from github import Github
 
 app = Flask(__name__)
 webhook = Webhook(app, secret=os.environ.get('SECRET', 'youvebeenmade'))
+g = Github(os.environ.get('GH_ACCESS_TOKEN', ''))
+org = g.get_organization(os.environ.get('GH_ORGANIZATION', 'deviavir'))
+repo = org.get_repo(os.environ.get('GH_REPO', 'terraform-ci'))
 
 
 @app.route('/')
 def main():
-    invoke.delay('plan')
     return 'OK'
 
 
 @webhook.hook()
 def on_push(data):
-    print("Got push with: {0}".format(data))
+    print("Got push data: {0}".format(data))
+    branch = data.ref.replace('refs/heads/')
+    commit = data.head_commit.id
+
+    if branch == 'master':
+        provider = 'aws'
+        tf_commit = False
+        modifieds = data.head_commit.modified
+        for change in modifieds:
+            if 'terraform/' in change:
+                tf_commit = True
+                if 'terraform/aws/' in change:
+                    provider = 'aws'
+                if 'terraform/gcp/' in change:
+                    provider = 'gcp'
+
+        if tf_commit:
+            g_commit = repo.get_commit(commit)
+            g_commit.create_status("pending", "", "terraform loading")
+
+            invoke.delay('apply', branch, provider=provider, commit=commit)
+
     return 'OK'
 
 
-@webhook.hook()
+@webhook.hook(event_type='pull_request')
 def on_pull_request(data):
     print("Got pull request data: {0}".format(data))
+
+    if data.action == 'opened' or data.action == 'synchronize':
+        branch = data.pull_request.head.ref
+        invoke.delay('plan', branch, pr=data.pull_request.number)
+
     return 'OK'
 
 
