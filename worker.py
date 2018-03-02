@@ -33,7 +33,7 @@ class NotifierTask(Task):
 ```
 {}
 ```
-'''.format(status, retval))
+'''.format(status, b'\n'.join(retval).decode('utf-8')))
 
         # complete commit status
         if status == 'SUCCESS':
@@ -49,7 +49,7 @@ class NotifierTask(Task):
 @app.task(base=NotifierTask)
 def invoke(args, branch, provider='aws', pr=False, commit=False):
     my_env = os.environ.copy()
-    args = tuple(args + shlex.split(TF_ARGS))
+    args = (args,) + tuple(shlex.split(TF_ARGS))
     supported_providers = ['aws', 'gcp']
 
     subprocess.Popen(
