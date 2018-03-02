@@ -49,7 +49,7 @@ def on_pull_request(data):
     print("Got pull request data: {0}".format(data))
 
     if data['action'] == 'opened' or data['action'] == 'synchronize' \
-          or data['action'] == 'reopened':
+            or data['action'] == 'reopened':
         branch = data['pull_request']['head']['ref']
         invoke.delay('plan', branch, pr=data['pull_request']['number'])
 
