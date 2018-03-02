@@ -14,6 +14,7 @@ repo = org.get_repo(os.environ.get('GH_REPO', 'terraform-ci'))
 INIT_REQUIRED = b'Backend reinitialization required.'
 MODULES_NOT_LOADED = b'Error loading modules:'
 TF_ARGS = os.environ.get('TF_ARGS', '')
+CWD = os.environ.get('CWD', '/terraform')
 
 
 class NotifierTask(Task):
@@ -53,21 +54,21 @@ def invoke(args, branch, provider='aws', pr=False, commit=False):
 
     subprocess.Popen(
         args=('git', 'pull', 'origin', branch),
-        cwd='/terraform',
+        cwd=CWD,
         env=my_env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT)
 
     subprocess.Popen(
         args=('git', 'checkout', 'origin/' + branch),
-        cwd='/terraform',
+        cwd=CWD,
         env=my_env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT)
 
     subprocess.Popen(
         args=('git', 'reset', '--hard', 'origin/' + branch),
-        cwd='/terraform',
+        cwd=CWD,
         env=my_env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT)
@@ -75,7 +76,7 @@ def invoke(args, branch, provider='aws', pr=False, commit=False):
     if branch != 'master':
         changed_files = subprocess.Popen(
             args=('git', '--no-pager', 'diff', '--name-only', 'HEAD', 'origin/master'),
-            cwd='/terraform',
+            cwd=CWD,
             env=my_env,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT)
