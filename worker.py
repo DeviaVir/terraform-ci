@@ -21,18 +21,6 @@ class NotifierTask(Task):
     abstract = True
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
-        print('would have sent data on return!!!')
-        print(status)
-        print('-----------------')
-        print(retval)
-        print('-----------------')
-        print(task_id)
-        print('-----------------')
-        print(args)
-        print('-----------------')
-        print(kwargs)
-        print('-----------------')
-        print(einfo)
         # TODO: post results to another channel? slack?
         # if args[1] == 'master':
 
