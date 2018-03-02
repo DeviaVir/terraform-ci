@@ -6,7 +6,7 @@ FROM python:3-alpine
 ENV FLASK_APP main.py
 ENV FLASK_DEBUG 0
 
-ADD config /root/.ssh
+ADD config /root/.ssh/config
 ADD . /app
 WORKDIR /app
 RUN pip install -r requirements.txt \
