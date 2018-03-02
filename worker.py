@@ -49,7 +49,7 @@ class NotifierTask(Task):
 @app.task(base=NotifierTask)
 def invoke(args, branch, provider='aws', pr=False, commit=False):
     my_env = os.environ.copy()
-    args = tuple(args.split() + shlex.split(TF_ARGS))
+    args = tuple(args + shlex.split(TF_ARGS))
     supported_providers = ['aws', 'gcp']
 
     subprocess.Popen(
