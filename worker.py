@@ -21,11 +21,23 @@ class NotifierTask(Task):
     abstract = True
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
+        print('would have sent data on return!!!')
+        print(status)
+        print('-----------------')
+        print(retval)
+        print('-----------------')
+        print(task_id)
+        print('-----------------')
+        print(args)
+        print('-----------------')
+        print(kwargs)
+        print('-----------------')
+        print(einfo)
         # TODO: post results to another channel? slack?
         # if args[1] == 'master':
 
         # post status in PR
-        if args[2]:
+        if len(args) > 2 and args[2]:
             pr = repo.get_pull(args[2])
             pr.create_issue_comment('''```
 {0}
@@ -34,11 +46,11 @@ class NotifierTask(Task):
 
         # complete commit status
         if status == 'SUCCESS':
-            if args[3]:
+            if len(args) > 3 and args[3]:
                 commit = repo.get_commit(args[3])
                 commit.create_status("success", "", "terraform succeeded")
         else:
-            if args[3]:
+            if len(args) > 3 and args[3]:
                 commit = repo.get_commit(args[3])
                 commit.create_status("failure", "", "terraform failed")
 
