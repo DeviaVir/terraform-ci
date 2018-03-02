@@ -38,7 +38,8 @@ def on_push(data):
             g_commit = repo.get_commit(commit)
             g_commit.create_status("pending", "", "terraform loading")
 
-            invoke.delay('apply', branch, provider=provider, commit=commit)
+            # TODO: enable after more testing
+            # invoke.delay('apply', branch, provider=provider, commit=commit)
 
     return 'OK'
 
