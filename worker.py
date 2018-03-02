@@ -52,7 +52,14 @@ def invoke(args, branch, provider='aws', pr=False, commit=False):
     supported_providers = ['aws', 'gcp']
 
     subprocess.Popen(
-        args=('git', 'pull'),
+        args=('git', 'pull', 'origin', branch),
+        cwd='/terraform',
+        env=my_env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT)
+
+    subprocess.Popen(
+        args=('git', 'checkout', 'origin/' + branch),
         cwd='/terraform',
         env=my_env,
         stdout=subprocess.PIPE,
@@ -67,7 +74,7 @@ def invoke(args, branch, provider='aws', pr=False, commit=False):
 
     if branch != 'master':
         changed_files = subprocess.Popen(
-            args=('git', '--no-pager', 'diff', '--name-only', 'HEAD', 'master'),
+            args=('git', '--no-pager', 'diff', '--name-only', 'HEAD', 'origin/master'),
             cwd='/terraform',
             env=my_env,
             stdout=subprocess.PIPE,
