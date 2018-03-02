@@ -124,7 +124,7 @@ def invoke(args, branch, provider='aws', pr=False, commit=False):
     if init_error:
         del_cmd = subprocess.Popen(
             args=('rm', '-rf', '.terraform'),
-            cwd='/terraform/' + provider,
+            cwd=CWD + '/' + provider,
             env=my_env,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT)
@@ -133,7 +133,7 @@ def invoke(args, branch, provider='aws', pr=False, commit=False):
 
         init_cmd = subprocess.Popen(
             args=('terraform', 'init', '-input=false'),
-            cwd='/terraform/' + provider,
+            cwd=CWD + '/' + provider,
             env=my_env,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT)
