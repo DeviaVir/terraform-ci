@@ -79,11 +79,11 @@ def invoke(args, branch, provider='aws', pr=False, commit=False):
 
         tf_updates = False
         for line in output_lines:
-            if 'terraform/' in line:
+            if b'terraform/' in line:
                 tf_updates = True
-                if 'terraform/aws/' in line:
+                if b'terraform/aws/' in line:
                     provider = 'aws'
-                if 'terraform/gcp/' in line:
+                if b'terraform/gcp/' in line:
                     provider = 'gcp'
         if not tf_updates:
             return output_lines
