@@ -53,10 +53,6 @@ def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False)
     supported_providers = ['aws', 'gcp']
     output_lines = []
 
-    print(('git', 'pull', 'origin', 'master'))
-    print(('git', 'reset', '--hard', 'origin/master'))
-    print(('git', 'pull', upstream, branch))
-
     cmd1 = subprocess.Popen(
         args=('git', 'pull', 'origin', 'master'),
         cwd=CWD,
@@ -68,7 +64,6 @@ def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False)
     while cmd1.poll() is None:
         output_line = cmd1.stdout.readline()
         output_lines.append(output_line)
-        print(cmd1.stdout.readline())
 
     cmd2 = subprocess.Popen(
         args=('git', 'reset', '--hard', 'origin/master'),
@@ -81,7 +76,6 @@ def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False)
     while cmd2.poll() is None:
         output_line = cmd2.stdout.readline()
         output_lines.append(output_line)
-        print(cmd2.stdout.readline())
 
     cmd3 = subprocess.Popen(
         args=('git', 'pull', upstream, branch),
@@ -94,7 +88,6 @@ def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False)
     while cmd3.poll() is None:
         output_line = cmd3.stdout.readline()
         output_lines.append(output_line)
-        print(cmd3.stdout.readline())
 
     if branch != 'master':
         changed_files = subprocess.Popen(
@@ -116,6 +109,7 @@ def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False)
                 if b'terraform/gcp/' in line:
                     provider = 'gcp'
         if not tf_updates:
+            output_lines = list(filter(None, output_lines))
             return output_lines
 
     # TODO: figure out what to do when we have changes to multiple providers
@@ -164,4 +158,5 @@ def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False)
 
         return invoke(args, branch, provider=provider, pr=pr, commit=commit)
 
+    output_lines = list(filter(None, output_lines))
     return output_lines
