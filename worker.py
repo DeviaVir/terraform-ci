@@ -51,31 +51,50 @@ def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False)
     my_env = os.environ.copy()
     args = (args,) + tuple(shlex.split(TF_ARGS))
     supported_providers = ['aws', 'gcp']
+    output_lines = []
 
     print(('git', 'pull', 'origin', 'master'))
     print(('git', 'reset', '--hard', 'origin/master'))
     print(('git', 'pull', upstream, branch))
 
-    subprocess.Popen(
+    cmd1 = subprocess.Popen(
         args=('git', 'pull', 'origin', 'master'),
         cwd=CWD,
         env=my_env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT)
 
-    subprocess.Popen(
+    output_line = cmd1.stdout.readline()
+    while cmd1.poll() is None:
+        output_line = cmd1.stdout.readline()
+        output_lines.append(output_line)
+        print(cmd1.stdout.readline())
+
+    cmd2 = subprocess.Popen(
         args=('git', 'reset', '--hard', 'origin/master'),
         cwd=CWD,
         env=my_env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT)
 
-    subprocess.Popen(
+    output_line = cmd2.stdout.readline()
+    while cmd2.poll() is None:
+        output_line = cmd2.stdout.readline()
+        output_lines.append(output_line)
+        print(cmd2.stdout.readline())
+
+    cmd3 = subprocess.Popen(
         args=('git', 'pull', upstream, branch),
         cwd=CWD,
         env=my_env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT)
+
+    output_line = cmd3.stdout.readline()
+    while cmd3.poll() is None:
+        output_line = cmd3.stdout.readline()
+        output_lines.append(output_line)
+        print(cmd3.stdout.readline())
 
     if branch != 'master':
         changed_files = subprocess.Popen(
@@ -84,7 +103,6 @@ def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False)
             env=my_env,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT)
-        output_lines = []
         while changed_files.poll() is None:
             output_line = changed_files.stdout.readline()
             output_lines.append(output_line)
@@ -112,7 +130,6 @@ def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False)
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT)
 
-    output_lines = []
     init_error = False
     while cmd.poll() is None:
         output_line = cmd.stdout.readline()
