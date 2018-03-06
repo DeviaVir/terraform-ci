@@ -34,16 +34,24 @@ class NotifierTask(Task):
 {}
 ```
 '''.format(status, b'\n'.join(retval).decode('utf-8')))
+        else:
+            print(retval)
 
         # complete commit status
         if status == 'SUCCESS':
             if 'commit' in kwargs:
                 commit = repo.get_commit(kwargs['commit'])
-                commit.create_status("success", "", "terraform succeeded")
+                commit.create_status(
+                    state="success",
+                    description="terraform applying",
+                    context="continuous/terraform-ci")
         else:
             if 'commit' in kwargs:
                 commit = repo.get_commit(kwargs['commit'])
-                commit.create_status("failure", "", "terraform failed")
+                commit.create_status(
+                    state="failure",
+                    description="terraform applying",
+                    context="continuous/terraform-ci")
 
 
 @app.task(base=NotifierTask)

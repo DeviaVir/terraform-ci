@@ -43,9 +43,7 @@ def on_push(data):
                 description="terraform applying",
                 context="continuous/terraform-ci")
 
-            print("Would have applied.")
-            # TODO: enable after more testing
-            # invoke.delay('apply', branch, provider=provider, commit=commit)
+            invoke.delay('apply', branch, provider=provider, commit=commit)
 
     return 'OK'
 
