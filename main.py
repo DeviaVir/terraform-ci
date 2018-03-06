@@ -20,11 +20,11 @@ def main():
 def on_push(data):
     print("Got push data: {0}".format(data))
     branch = data['ref'].replace('refs/heads/', '')
-    commit = data['head_commit']['id']
 
     if branch == 'master':
         provider = 'aws'
         tf_commit = False
+        upstream = data['repository']['ssh_url']
         modifieds = data['head_commit']['modified']
         for change in modifieds:
             if 'terraform/' in change:
@@ -35,13 +35,17 @@ def on_push(data):
                     provider = 'gcp'
 
         if tf_commit:
+            commit = data['head_commit']['id']
             g_commit = repo.get_commit(commit)
             g_commit.create_status(
                 state="pending",
                 description="terraform applying",
                 context="continuous/terraform-ci")
 
-            invoke.delay('apply', branch, provider=provider, commit=commit)
+            invoke.delay('apply', branch,
+                         provider=provider,
+                         commit=commit,
+                         upstream=upstream)
 
     return 'OK'
 
