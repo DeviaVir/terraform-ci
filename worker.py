@@ -57,7 +57,11 @@ class NotifierTask(Task):
 @app.task(base=NotifierTask)
 def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False):
     my_env = os.environ.copy()
+    action = args
     args = (args,) + tuple(shlex.split(TF_ARGS))
+    if action == 'apply':
+        args = args + ('-auto-approve',)
+    print(args)
     supported_providers = ['aws', 'gcp']
     output_lines = []
 
