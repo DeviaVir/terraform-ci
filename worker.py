@@ -125,6 +125,17 @@ def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False)
     if provider not in supported_providers:
         return output_lines
 
+    workspace = subprocess.Popen(
+        args=('terraform', 'workspace', 'select', 'production'),
+        cwd=CWD + '/' + provider,
+        env=my_env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT)
+
+    while workspace.poll() is None:
+        output_line = workspace.stdout.readline()
+        output_lines.append(output_line)
+
     cmd = subprocess.Popen(
         args=('terraform',) + args,
         cwd=CWD + '/' + provider,
