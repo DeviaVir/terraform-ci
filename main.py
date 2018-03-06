@@ -22,6 +22,8 @@ def on_push(data):
     branch = data['ref'].replace('refs/heads/', '')
     commit = data['head_commit']['id']
 
+    print("Commit: {0}".format(commit))
+
     if branch == 'master':
         provider = 'aws'
         tf_commit = False
@@ -36,8 +38,12 @@ def on_push(data):
 
         if tf_commit:
             g_commit = repo.get_commit(commit)
-            g_commit.create_status("pending", "", "terraform loading")
+            g_commit.create_status(
+                state="pending",
+                description="terraform applying",
+                context="continuous/terraform-ci")
 
+            print("Would have applied.")
             # TODO: enable after more testing
             # invoke.delay('apply', branch, provider=provider, commit=commit)
 
