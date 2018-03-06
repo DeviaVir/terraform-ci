@@ -22,8 +22,6 @@ def on_push(data):
     branch = data['ref'].replace('refs/heads/', '')
     commit = data['head_commit']['id']
 
-    print("Commit: {0}".format(commit))
-
     if branch == 'master':
         provider = 'aws'
         tf_commit = False
@@ -57,7 +55,15 @@ def on_pull_request(data):
         branch = data['pull_request']['head']['ref']
         upstream = data['pull_request']['head']['repo']['ssh_url']
         pr = data['pull_request']['number']
-        invoke.delay('plan', branch, pr=pr, upstream=upstream)
+
+        commit = data['pull_request']['head']['sha']
+        g_commit = repo.get_commit(commit)
+        g_commit.create_status(
+            state="pending",
+            description="terraform planning",
+            context="continuous/terraform-ci")
+
+        invoke.delay('plan', branch, pr=pr, upstream=upstream, commit=commit)
 
     return 'OK'
 
