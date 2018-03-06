@@ -43,14 +43,14 @@ class NotifierTask(Task):
                 commit = repo.get_commit(kwargs['commit'])
                 commit.create_status(
                     state="success",
-                    description="terraform succeeded",
+                    description="terraform %s succeeded" % args[0],
                     context="continuous/terraform-ci")
         else:
             if 'commit' in kwargs:
                 commit = repo.get_commit(kwargs['commit'])
                 commit.create_status(
                     state="failure",
-                    description="terraform failed",
+                    description="terraform %s failed" % args[0],
                     context="continuous/terraform-ci")
 
 
