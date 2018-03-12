@@ -27,8 +27,9 @@ class NotifierTask(Task):
 
         # post status in PR
         if 'pr' in kwargs:
-            pr = repo.get_pull(kwargs['pr'])
-            pr.create_issue_comment('''{}
+            if retval:
+                pr = repo.get_pull(kwargs['pr'])
+                pr.create_issue_comment('''{}
 
 ```
 {}
@@ -55,12 +56,14 @@ class NotifierTask(Task):
 
 
 @app.task(base=NotifierTask)
-def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False):
+def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False,
+           skip_init=False):
     my_env = os.environ.copy()
     action = args
-    args = (args,) + tuple(shlex.split(TF_ARGS))
-    if action == 'apply':
-        args = args + ('-auto-approve',)
+    if not skip_init:  # we had an init error, no need to do this again
+        args = (args,) + tuple(shlex.split(TF_ARGS))
+        if action == 'apply':
+            args = args + ('-auto-approve',)
     print(args)
     supported_providers = ['aws', 'gcp']
     output_lines = []
@@ -179,7 +182,8 @@ def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False)
         while init_cmd.poll() is None:
             output_line = init_cmd.stdout.readline()
 
-        return invoke(args, branch, provider=provider, pr=pr, commit=commit)
+        return invoke(args, branch, provider=provider, pr=pr, commit=commit,
+                      skip_init=True)
 
     output_lines = list(filter(None, output_lines))
     return output_lines
