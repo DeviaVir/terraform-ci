@@ -132,6 +132,7 @@ def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False,
     if provider not in supported_providers:
         return output_lines
 
+    init_error = False
     workspace = subprocess.Popen(
         args=('terraform', 'workspace', 'select', 'production'),
         cwd=CWD + '/' + provider,
@@ -142,25 +143,27 @@ def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False,
     while workspace.poll() is None:
         output_line = workspace.stdout.readline()
         output_lines.append(output_line)
-
-    cmd = subprocess.Popen(
-        args=('terraform',) + args,
-        cwd=CWD + '/' + provider,
-        env=my_env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT)
-
-    init_error = False
-    while cmd.poll() is None:
-        output_line = cmd.stdout.readline()
-        output_lines.append(output_line)
         if INIT_REQUIRED in output_line or MODULES_NOT_LOADED in output_line:
             init_error = True
 
-    output_line = cmd.stdout.readline()
-    while output_line:
-        output_lines.append(output_line)
+    if not init_error:
+        cmd = subprocess.Popen(
+            args=('terraform',) + args,
+            cwd=CWD + '/' + provider,
+            env=my_env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT)
+
+        while cmd.poll() is None:
+            output_line = cmd.stdout.readline()
+            output_lines.append(output_line)
+            if INIT_REQUIRED in output_line or MODULES_NOT_LOADED in output_line:
+                init_error = True
+
         output_line = cmd.stdout.readline()
+        while output_line:
+            output_lines.append(output_line)
+            output_line = cmd.stdout.readline()
 
     if init_error:
         del_cmd = subprocess.Popen(
