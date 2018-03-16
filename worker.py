@@ -27,6 +27,7 @@ class NotifierTask(Task):
 
         # post status in PR
         if 'pr' in kwargs:
+            print(retval)
             if retval:
                 pr = repo.get_pull(kwargs['pr'])
                 pr.create_issue_comment('''{}
@@ -35,8 +36,6 @@ class NotifierTask(Task):
 {}
 ```
 '''.format(status, b'\n'.join(retval).decode('utf-8')))
-        else:
-            print(retval)
 
         # complete commit status
         if status == 'SUCCESS':
