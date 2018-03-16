@@ -11,7 +11,7 @@ g = Github(os.environ.get('GH_ACCESS_TOKEN', ''))
 org = g.get_organization(os.environ.get('GH_ORGANIZATION', 'deviavir'))
 repo = org.get_repo(os.environ.get('GH_REPO', 'terraform-ci'))
 
-INIT_REQUIRED = b'Backend reinitialization required.'
+INIT_REQUIRED = b'Please run "terraform init"'
 MODULES_NOT_LOADED = b'Error loading modules:'
 TF_ARGS = os.environ.get('TF_ARGS', '')
 CWD = os.environ.get('CWD', '/terraform')
