@@ -92,7 +92,7 @@ def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False,
         output_lines.append(output_line)
 
     cmd3 = subprocess.Popen(
-        args=('git', 'pull', upstream, branch),
+        args=('git', 'pull', '--rebase', upstream, branch),
         cwd=CWD,
         env=my_env,
         stdout=subprocess.PIPE,
