@@ -28,38 +28,34 @@ class NotifierTask(Task):
         print(retval)
         print(args[1])
         if slack and args[1] == 'master':
+            res = []
             if retval:
-                try:
-                    target = retval.index(b'------------------------------------------------------------------------\n')
-                except ValueError:
-                    target = 0
-                if target == 0:
-                    try:
-                        target = retval.index(b'\n')
-                    except ValueError:
-                        target = 0
-                retval = retval[target+1:]
-                retval = b''.join(retval).decode('utf-8')
-            slack_data = {
-                "attachments": [
-                    {
-                        "fallback": "Terraform apply: %s" % retval,
-                        "pretext": "Terraform apply",
-                        "title": "TERRAFORM-CI",
-                        "text": retval,
-                        "color": "#5956e2"
-                    }
-                ]
-            }
-            response = requests.post(
-                slack, data=json.dumps(slack_data),
-                headers={'Content-Type': 'application/json'}
-            )
-            if response.status_code != 200:
-                print(
-                    'Request to slack returned an error %s, the response is:\n%s'
-                    % (response.status_code, response.text)
+                for x in retval:
+                    x = x.decode('utf-8')
+                    if 'Refreshing state...' not in x:
+                        res.push(x)
+                res = ''.join(res)
+            if res:
+                slack_data = {
+                    "attachments": [
+                        {
+                            "fallback": "Terraform apply: %s" % retval,
+                            "pretext": "Terraform apply",
+                            "title": "TERRAFORM-CI",
+                            "text": retval,
+                            "color": "#5956e2"
+                        }
+                    ]
+                }
+                response = requests.post(
+                    slack, data=json.dumps(slack_data),
+                    headers={'Content-Type': 'application/json'}
                 )
+                if response.status_code != 200:
+                    print(
+                        'Request to slack returned an error %s, the response is:\n%s'
+                        % (response.status_code, response.text)
+                    )
         else:
             if retval:
                 retval = b''.join(retval).decode('utf-8')
