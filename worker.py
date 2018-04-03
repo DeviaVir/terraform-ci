@@ -1,12 +1,15 @@
 import shlex
 import subprocess
 import os
+import json
+import requests
 from celery import Celery, Task
 from github import Github
 
 
 broker = 'amqp://rabbit:5672'
 app = Celery(__name__, broker=broker)
+slack = os.environ.get('SLACK_WEBHOOK', '')
 g = Github(os.environ.get('GH_ACCESS_TOKEN', ''))
 org = g.get_organization(os.environ.get('GH_ORGANIZATION', 'deviavir'))
 repo = org.get_repo(os.environ.get('GH_REPO', 'terraform-ci'))
@@ -22,8 +25,30 @@ class NotifierTask(Task):
     abstract = True
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
-        # TODO: post results to another channel? slack?
-        # if args[1] == 'master':
+        if retval:
+            retval = b'\n'.join(retval).decode('utf-8')
+        print(args[1])
+        if slack and args[1] == 'master':
+            slack_data = {
+                "attachments": [
+                    {
+                        "fallback": "Terraform apply: %s" % retval,
+                        "pretext": "Terraform apply",
+                        "title": "TERRAFORM-CI",
+                        "text": retval,
+                        "color": "#5956e2"
+                    }
+                ]
+            }
+            response = requests.post(
+                slack, data=json.dumps(slack_data),
+                headers={'Content-Type': 'application/json'}
+            )
+            if response.status_code != 200:
+                print(
+                    'Request to slack returned an error %s, the response is:\n%s'
+                    % (response.status_code, response.text)
+                )
 
         # post status in PR
         if 'pr' in kwargs:
@@ -35,7 +60,7 @@ class NotifierTask(Task):
 ```
 {}
 ```
-'''.format(status, b'\n'.join(retval).decode('utf-8')))
+'''.format(status, retval))
 
         # complete commit status
         if status == 'SUCCESS':
