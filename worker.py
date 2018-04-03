@@ -25,10 +25,14 @@ class NotifierTask(Task):
     abstract = True
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
-        if retval:
-            retval = b'\n'.join(retval).decode('utf-8')
+        print(retval)
         print(args[1])
         if slack and args[1] == 'master':
+            if retval:
+                retval = [x.strip(' ') for x in retval]
+                target = retval.index('------------------------------------------------------------------------')
+                retval = retval[:target+1]
+                retval = b'\n'.join(retval).decode('utf-8')
             slack_data = {
                 "attachments": [
                     {
@@ -49,10 +53,12 @@ class NotifierTask(Task):
                     'Request to slack returned an error %s, the response is:\n%s'
                     % (response.status_code, response.text)
                 )
+        else:
+            if retval:
+                retval = b'\n'.join(retval).decode('utf-8')
 
         # post status in PR
         if 'pr' in kwargs:
-            print(retval)
             if retval:
                 pr = repo.get_pull(kwargs['pr'])
                 pr.create_issue_comment('''{}
