@@ -29,10 +29,10 @@ class NotifierTask(Task):
         print(args[1])
         if slack and args[1] == 'master':
             if retval:
-                retval = [x.strip(' ') for x in retval]
-                target = retval.index('------------------------------------------------------------------------')
-                retval = retval[:target+1]
-                retval = b'\n'.join(retval).decode('utf-8')
+                target = retval.index(b'------------------------------------------------------------------------\n')
+                if target:
+                    retval = retval[:target+1]
+                retval = b''.join(retval).decode('utf-8')
             slack_data = {
                 "attachments": [
                     {
@@ -55,7 +55,7 @@ class NotifierTask(Task):
                 )
         else:
             if retval:
-                retval = b'\n'.join(retval).decode('utf-8')
+                retval = b''.join(retval).decode('utf-8')
 
         # post status in PR
         if 'pr' in kwargs:
