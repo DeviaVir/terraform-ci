@@ -33,7 +33,7 @@ class NotifierTask(Task):
                 for x in retval:
                     x = x.decode('utf-8')
                     if 'Refreshing state...' not in x:
-                        res.push(x)
+                        res.append(x)
                 res = ''.join(res)
             if res:
                 slack_data = {
