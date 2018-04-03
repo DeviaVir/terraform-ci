@@ -39,10 +39,10 @@ class NotifierTask(Task):
                 slack_data = {
                     "attachments": [
                         {
-                            "fallback": "Terraform apply: %s" % retval,
+                            "fallback": "Terraform apply: %s" % res,
                             "pretext": "Terraform apply",
                             "title": "TERRAFORM-CI",
-                            "text": retval,
+                            "text": res,
                             "color": "#5956e2"
                         }
                     ]
