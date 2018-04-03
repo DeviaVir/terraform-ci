@@ -30,7 +30,7 @@ class NotifierTask(Task):
         if slack and args[1] == 'master':
             if retval:
                 try:
-                    target = retval.index(b'------------------------------------------------------------------------\n')
+                    target = retval.index(b'\n')
                 except ValueError:
                     target = 0
                 retval = retval[target+1:]
