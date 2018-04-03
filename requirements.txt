@@ -2,3 +2,4 @@ pygithub==1.37
 Flask>=0.12<0.13
 github-webhook==1.0.2
 celery==4.1.0
+requests==2.17.3
