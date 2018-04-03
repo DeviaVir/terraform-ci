@@ -29,9 +29,11 @@ class NotifierTask(Task):
         print(args[1])
         if slack and args[1] == 'master':
             if retval:
-                target = retval.index(b'------------------------------------------------------------------------\n')
-                if target:
-                    retval = retval[:target+1]
+                try:
+                    target = retval.index(b'------------------------------------------------------------------------\n')
+                except ValueError:
+                    target = 0
+                retval = retval[:target+1]
                 retval = b''.join(retval).decode('utf-8')
             slack_data = {
                 "attachments": [
