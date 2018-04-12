@@ -137,6 +137,18 @@ def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False,
         output_line = cmd3.stdout.readline()
         output_lines.append(output_line)
 
+    cm4 = subprocess.Popen(
+        args=('git', 'submodule', 'update', '--init', '--recursive'),
+        cwd=CWD,
+        env=my_env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT)
+
+    output_line = cm4.stdout.readline()
+    while cm4.poll() is None:
+        output_line = cm4.stdout.readline()
+        output_lines.append(output_line)
+
     if branch != 'master':
         changed_files = subprocess.Popen(
             args=('git', '--no-pager', 'diff', '--name-only', 'HEAD', 'origin/master'),
