@@ -231,7 +231,7 @@ def invoke(args, branch, provider='aws', pr=False, commit=False, upstream=False,
             output_line = init_cmd.stdout.readline()
 
         return invoke(args, branch, provider=provider, pr=pr, commit=commit,
-                      skip_init=True)
+                      upstream=upstream, skip_init=True)
 
     output_lines = list(filter(None, output_lines))
     return output_lines
